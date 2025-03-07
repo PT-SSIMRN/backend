@@ -16,6 +16,7 @@ const Ticket = sequelize.define(
     status: {
       type: DataTypes.STRING,
       allowNull: false,
+      defaultValue: "abierto",
     },
     created_by: {
       type: DataTypes.INTEGER,
