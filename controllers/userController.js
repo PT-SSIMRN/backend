@@ -56,7 +56,7 @@ export const login = async (req, res) => {
 
     // Crear token JWT
     const token = jwt.sign(
-      { id: user.id, username: user.username },
+      { id: user.id, username: user.username, isadmin: user.isadmin },
       SECRET_KEY
     );
 
@@ -75,12 +75,12 @@ export const logout = (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params; // ID del usuario a modificar
-    const { username, password, department, isAdmin } = req.body;
+    const { username, password, department, isadmin } = req.body;
     const adminId = req.user.id; // ID del usuario autenticado (extraído del token)
 
     // Buscar al usuario autenticado para verificar si es admin
     const admin = await User.findByPk(adminId);
-    if (!admin || admin.isAdmin !== true) {
+    if (!admin || admin.isadmin !== true) {
       return res.status(403).json({
         error:
           "Acceso denegado, solo administradores pueden modificar usuarios",
@@ -104,7 +104,7 @@ export const updateUser = async (req, res) => {
       username: username || user.username,
       department: department || user.department,
       password: hashedPassword,
-      isAdmin: isAdmin || user.isAdmin, // Permite cambiar el tipo de usuario (ejemplo: user → admin)
+      isadmin: typeof isadmin !== "undefined" ? isadmin : user.isadmin,
     });
 
     res.status(200).json({ message: "Usuario actualizado con éxito", user });

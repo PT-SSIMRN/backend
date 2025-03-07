@@ -14,6 +14,7 @@ const authenticateUser = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, SECRET_KEY);
     req.user = decoded; // Agrega los datos del usuario autenticado a la request
+    console.log(decoded);
     next();
   } catch (error) {
     res.status(401).json({ error: "Token inválido" });
