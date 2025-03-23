@@ -7,7 +7,7 @@ const SECRET_KEY = process.env.JWT_SECRET || "claveSecreta123";
 // **Registro de usuario**
 export const register = async (req, res) => {
   try {
-    const { username, department, password } = req.body;
+    const { username, department_id, password } = req.body;
 
     // Verifica si el usuario ya existe
     const existingUser = await User.findOne({ where: { username } });
@@ -21,7 +21,7 @@ export const register = async (req, res) => {
     // Crear usuario
     const newUser = await User.create({
       username,
-      department,
+      department_id,
       password: hashedPassword,
     });
 
@@ -75,7 +75,7 @@ export const logout = (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params; // ID del usuario a modificar
-    const { username, password, department, isadmin } = req.body;
+    const { username, password, department_id, isadmin } = req.body;
     const adminId = req.user.id; // ID del usuario autenticado (extraído del token)
 
     // Buscar al usuario autenticado para verificar si es admin
@@ -102,7 +102,7 @@ export const updateUser = async (req, res) => {
     // Actualizar usuario
     await user.update({
       username: username || user.username,
-      department: department || user.department,
+      department_id: department_id || user.department_id,
       password: hashedPassword,
       isadmin: typeof isadmin !== "undefined" ? isadmin : user.isadmin,
     });

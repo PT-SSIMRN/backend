@@ -7,12 +7,14 @@ import Category from "./Category.js";
 import Priority from "./Priority.js";
 import ChangeHistory from "./ChangeHistory.js";
 import Comment from "./Comment.js";
-import BackupRegister from "./BackupRegister.js";
+import Status from "./Status.js";
+import Department from "./Department.js";
 
 // Definir relaciones
-Ticket.belongsTo(User, { foreignKey: "created_by" });
+Ticket.belongsTo(User, { foreignKey: "user_id" });
 Ticket.belongsTo(Category, { foreignKey: "category" });
 Ticket.belongsTo(Priority, { foreignKey: "priority" });
+Ticket.belongsTo(Status, { foreignKey: "status" });
 
 ChangeHistory.belongsTo(Ticket, { foreignKey: "ticket_id" });
 ChangeHistory.belongsTo(User, { foreignKey: "user_id" });
@@ -20,14 +22,10 @@ ChangeHistory.belongsTo(User, { foreignKey: "user_id" });
 Comment.belongsTo(Ticket, { foreignKey: "ticket_id" });
 Comment.belongsTo(User, { foreignKey: "user_id" });
 
+User.belongsTo(Department, { foreignKey: "department_id" });
+
+ChangeHistory.belongsTo(Status, { foreignKey: "previous_status" });
+ChangeHistory.belongsTo(Status, { foreignKey: "new_status" });
+
 // Exportar modelos usando ESM
-export {
-  sequelize,
-  User,
-  Ticket,
-  Category,
-  Priority,
-  ChangeHistory,
-  Comment,
-  BackupRegister,
-};
+export { sequelize, User, Ticket, Category, Priority, ChangeHistory, Comment };

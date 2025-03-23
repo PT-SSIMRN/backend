@@ -14,11 +14,11 @@ const Ticket = sequelize.define(
       allowNull: false,
     },
     status: {
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: "abierto",
+      defaultValue: 1,
     },
-    created_by: {
+    user_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
