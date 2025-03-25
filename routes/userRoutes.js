@@ -1,19 +1,11 @@
 import express from "express";
-import {
-  register,
-  login,
-  logout,
-  updateUser,
-  getDepartments,
-} from "../controllers/userController.js";
+import { register, login, getMe } from "../controllers/userController.js";
 import authenticateUser from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.get("/departments", getDepartments);
 router.post("/register", register);
 router.post("/login", login);
-router.post("/logout", logout);
-router.put("/:id", authenticateUser, updateUser); // Solo autenticados pueden modificar usuarios
+router.get("/me", authenticateUser, getMe);
 
 export default router;

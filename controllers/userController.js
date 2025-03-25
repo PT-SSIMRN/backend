@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import User from "../models/User.js";
+import { User } from "../models/index.js";
 import Department from "../models/Department.js";
 
 const SECRET_KEY = process.env.JWT_SECRET || "claveSecreta123";
@@ -8,28 +8,44 @@ const SECRET_KEY = process.env.JWT_SECRET || "claveSecreta123";
 // **Registro de usuario**
 export const register = async (req, res) => {
   try {
-    const { username, department_id, password } = req.body;
+    const { username, password, department_id } = req.body;
 
-    // Verifica si el usuario ya existe
+    // Verificar si el usuario ya existe
     const existingUser = await User.findOne({ where: { username } });
     if (existingUser) {
       return res.status(400).json({ error: "El usuario ya existe" });
     }
 
-    // Hashear la contraseña
+    // Encriptar la contraseña
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Crear usuario
-    const newUser = await User.create({
+    // Crear el usuario
+    const user = await User.create({
       username,
-      department_id,
       password: hashedPassword,
+      department_id,
+      isadmin: false,
     });
 
-    res
-      .status(201)
-      .json({ message: "Usuario registrado con éxito", user: newUser });
+    // Generar token JWT
+    const token = jwt.sign(
+      { id: user.id, username: user.username, isadmin: user.isadmin },
+      process.env.JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+
+    res.status(201).json({
+      message: "Usuario registrado exitosamente",
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        department_id: user.department_id,
+        isadmin: user.isadmin,
+      },
+    });
   } catch (error) {
+    console.error("Error en el registro:", error);
     res.status(500).json({ error: "Error al registrar el usuario" });
   }
 };
@@ -39,31 +55,37 @@ export const login = async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // Buscar usuario en la base de datos
+    // Buscar el usuario
     const user = await User.findOne({ where: { username } });
     if (!user) {
-      return res
-        .status(400)
-        .json({ error: "Usuario o contraseña incorrectos" });
+      return res.status(401).json({ error: "Credenciales inválidas" });
     }
 
-    // Comparar contraseña ingresada con la hasheada
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res
-        .status(400)
-        .json({ error: "Usuario o contraseña incorrectos" });
+    // Verificar la contraseña
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) {
+      return res.status(401).json({ error: "Credenciales inválidas" });
     }
 
-    // Crear token JWT
+    // Generar token JWT
     const token = jwt.sign(
       { id: user.id, username: user.username, isadmin: user.isadmin },
-      SECRET_KEY
+      process.env.JWT_SECRET,
+      { expiresIn: "24h" }
     );
 
-    res.json({ message: "Login exitoso", token });
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        department_id: user.department_id,
+        isadmin: user.isadmin,
+      },
+    });
   } catch (error) {
-    res.status(500).json({ error: "Error en el login" });
+    console.error("Error en el login:", error);
+    res.status(500).json({ error: "Error al iniciar sesión" });
   }
 };
 
@@ -76,49 +98,59 @@ export const logout = (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params; // ID del usuario a modificar
-    const { username, password, department_id, isadmin } = req.body;
-    const adminId = req.user.id; // ID del usuario autenticado (extraído del token)
+    const { username, department_id, isadmin } = req.body;
 
-    // Buscar al usuario autenticado para verificar si es admin
-    const admin = await User.findByPk(adminId);
-    if (!admin || admin.isadmin !== true) {
-      return res.status(403).json({
-        error:
-          "Acceso denegado, solo administradores pueden modificar usuarios",
-      });
-    }
-
-    // Buscar al usuario que se quiere modificar
+    // Verificar si el usuario existe
     const user = await User.findByPk(id);
     if (!user) {
       return res.status(404).json({ error: "Usuario no encontrado" });
     }
 
-    // Si se proporciona una nueva contraseña, se hashea
-    let hashedPassword = user.password;
-    if (password) {
-      hashedPassword = await bcrypt.hash(password, 10);
-    }
-
-    // Actualizar usuario
+    // Actualizar el usuario
     await user.update({
-      username: username || user.username,
-      department_id: department_id || user.department_id,
-      password: hashedPassword,
-      isadmin: typeof isadmin !== "undefined" ? isadmin : user.isadmin,
+      username,
+      department_id,
+      isadmin,
     });
 
-    res.status(200).json({ message: "Usuario actualizado con éxito", user });
+    res.json({
+      message: "Usuario actualizado exitosamente",
+      user: {
+        id: user.id,
+        username: user.username,
+        department_id: user.department_id,
+        isadmin: user.isadmin,
+      },
+    });
   } catch (error) {
-    res.status(500).json({ error: "Error al actualizar usuario" });
+    console.error("Error al actualizar usuario:", error);
+    res.status(500).json({ error: "Error al actualizar el usuario" });
   }
 };
 
+// **Obtener departamentos**
 export const getDepartments = async (req, res) => {
   try {
     const departments = await Department.findAll();
-    res.status(200).json(departments);
+    res.json(departments);
   } catch (error) {
+    console.error("Error al obtener departamentos:", error);
     res.status(500).json({ error: "Error al obtener los departamentos" });
+  }
+};
+
+// **Obtener información del usuario actual**
+export const getMe = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id, {
+      attributes: { exclude: ["password"] },
+    });
+    if (!user) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+    res.json(user);
+  } catch (error) {
+    console.error("Error al obtener información del usuario:", error);
+    res.status(500).json({ error: "Error al obtener información del usuario" });
   }
 };

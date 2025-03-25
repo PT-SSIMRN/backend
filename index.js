@@ -2,7 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import morgan from "morgan";
-import { sequelize } from "./models/index.js";
+import sequelize from "./config/db.js";
 import ticketRoutes from "./routes/ticketRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 
@@ -17,7 +17,12 @@ app.use(morgan("dev")); // Registro de solicitudes HTTP, cambiar a "combined" en
 app.use(express.json()); // Permite JSON en las peticiones
 app.use(express.urlencoded({ extended: true })); // Permite formularios codificados
 
-// Sincronización de modelos
+// Rutas
+app.use("/api/tickets", ticketRoutes); // Aquí se apuntan las rutas para tickets
+app.use("/api/users", userRoutes); // Aquí se apuntan las rutas para usuarios
+app.get("/", (req, res) => res.send("Servidor funcionando"));
+
+// Sincronización de modelos y inicio del servidor
 try {
   await sequelize.authenticate();
   console.log("Conexión establecida con la base de datos.");
@@ -27,8 +32,3 @@ try {
 } catch (error) {
   console.error("Error al conectar con la base de datos:", error);
 }
-
-// Rutas
-app.use("/api/tickets", ticketRoutes); // Aquí se apuntan las rutas para tickets
-app.use("/api/users", userRoutes); // Aquí se apuntan las rutas para usuarios
-app.get("/", (req, res) => res.send("Servidor funcionando"));

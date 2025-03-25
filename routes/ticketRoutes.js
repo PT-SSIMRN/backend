@@ -8,6 +8,8 @@ import {
   deleteTicket,
   getPriorities, // Asegúrate que está importado
   getCategories, // Añade la importación
+  addComment,
+  getStatus,
 } from "../controllers/ticketController.js";
 import authenticateUser from "../middleware/authMiddleware.js";
 
@@ -19,6 +21,9 @@ router.get("/priorities", getPriorities); // Movida ANTES de /:id
 
 // Ruta para obtener las categorías (protegida)
 router.get("/categories", getCategories); // Añadida ANTES de /:id
+
+// Ruta para obtener los estados (protegida)
+router.get("/status", getStatus);
 
 // --- Rutas generales y con parámetros DESPUÉS ---
 // Ruta para crear un ticket (protegida)
@@ -35,5 +40,8 @@ router.put("/:id", authenticateUser, updateTicket);
 
 // Ruta para eliminar un ticket (protegida)
 router.delete("/:id", authenticateUser, deleteTicket);
+
+// Ruta para agregar un comentario a un ticket (protegida)
+router.post("/:id/comments", authenticateUser, addComment);
 
 export default router;

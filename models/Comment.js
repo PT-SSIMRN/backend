@@ -21,11 +21,16 @@ const Comment = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    comment_date: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+    },
   },
   {
     tableName: "comments",
-    timestamps: true,
-    updatedAt: false,
+    timestamps: false,
+    createdAt: "comment_date",
   }
 );
 
