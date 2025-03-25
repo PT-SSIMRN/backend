@@ -5,8 +5,6 @@ import morgan from "morgan";
 import { sequelize } from "./models/index.js";
 import ticketRoutes from "./routes/ticketRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
-import { createServer } from "http";
-import { Server } from "socket.io";
 
 dotenv.config(); // Cargar variables de entorno
 
@@ -19,35 +17,18 @@ app.use(morgan("dev")); // Registro de solicitudes HTTP, cambiar a "combined" en
 app.use(express.json()); // Permite JSON en las peticiones
 app.use(express.urlencoded({ extended: true })); // Permite formularios codificados
 
-// Inicialización de Socket.io
-const httpServer = createServer(app);
-const io = new Server(httpServer, {
-  cors: {
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST"],
-  },
-  transports: ["websocket", "polling"],
-});
-
-//middleware de socket.io
-io.on("connection", (socket) => {
-  console.log(`Conexión desde`, socket.id);
-  socket.on("disconnect", () => {
-    console.log(`Desconexión de`, socket.id);
-  });
-});
-
 // Sincronización de modelos
-sequelize
-  .sync({ alter: true }) // En producción, usar migraciones en lugar de sync()
-  .then(() => console.log("Base de datos sincronizada correctamente"))
-  .catch((err) => console.error("Error al sincronizar la BD:", err));
+try {
+  await sequelize.authenticate();
+  console.log("Conexión establecida con la base de datos.");
+  app.listen(PORT, () => {
+    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  });
+} catch (error) {
+  console.error("Error al conectar con la base de datos:", error);
+}
 
 // Rutas
 app.use("/api/tickets", ticketRoutes); // Aquí se apuntan las rutas para tickets
 app.use("/api/users", userRoutes); // Aquí se apuntan las rutas para usuarios
 app.get("/", (req, res) => res.send("Servidor funcionando"));
-
-httpServer.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
-});

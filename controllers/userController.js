@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import Department from "../models/Department.js";
 
 const SECRET_KEY = process.env.JWT_SECRET || "claveSecreta123";
 
@@ -110,5 +111,14 @@ export const updateUser = async (req, res) => {
     res.status(200).json({ message: "Usuario actualizado con éxito", user });
   } catch (error) {
     res.status(500).json({ error: "Error al actualizar usuario" });
+  }
+};
+
+export const getDepartments = async (req, res) => {
+  try {
+    const departments = await Department.findAll();
+    res.status(200).json(departments);
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener los departamentos" });
   }
 };

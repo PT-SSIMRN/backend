@@ -10,14 +10,15 @@ const sequelize = new Sequelize(
   {
     host: process.env.DB_HOST,
     dialect: "postgres",
-    logging: false,
+    logging: false, // Puedes poner console.log para ver las queries SQL en desarrollo
+    timezone: "America/Santiago",
   }
 );
 
 const testConnection = async () => {
   try {
     await sequelize.authenticate();
-    console.log("Conexión a la BD establecida");
+    console.log("Conexión a la BD establecida correctamente.");
   } catch (error) {
     console.error("Error al conectar a la BD:", error);
   }
