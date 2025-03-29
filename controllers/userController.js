@@ -5,10 +5,57 @@ import Department from "../models/Department.js";
 
 const SECRET_KEY = process.env.JWT_SECRET || "claveSecreta123";
 
-// **Registro de usuario**
+// **Crear primer administrador (solo si no hay usuarios)**
+export const createFirstAdmin = async (req, res) => {
+  try {
+    // Verificar si ya existe algún usuario
+    const userCount = await User.count();
+    if (userCount > 0) {
+      return res.status(403).json({
+        error:
+          "Ya existen usuarios en el sistema. Este endpoint solo debe usarse para la primera configuración.",
+      });
+    }
+
+    const { username, password, department_id } = req.body;
+
+    // Encriptar la contraseña
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Crear el usuario administrador
+    const user = await User.create({
+      username,
+      password: hashedPassword,
+      department_id,
+      isadmin: true,
+    });
+
+    res.status(201).json({
+      message: "Usuario administrador creado exitosamente",
+      user: {
+        id: user.id,
+        username: user.username,
+        department_id: user.department_id,
+        isadmin: user.isadmin,
+      },
+    });
+  } catch (error) {
+    console.error("Error al crear el primer administrador:", error);
+    res.status(500).json({ error: "Error al crear el usuario administrador" });
+  }
+};
+
+// **Registro de usuario (solo admins)**
 export const register = async (req, res) => {
   try {
-    const { username, password, department_id } = req.body;
+    // Verificar si el usuario que hace la petición es admin
+    if (!req.user.isadmin) {
+      return res
+        .status(403)
+        .json({ error: "Solo los administradores pueden crear usuarios" });
+    }
+
+    const { username, password, department_id, isadmin } = req.body;
 
     // Verificar si el usuario ya existe
     const existingUser = await User.findOne({ where: { username } });
@@ -24,19 +71,11 @@ export const register = async (req, res) => {
       username,
       password: hashedPassword,
       department_id,
-      isadmin: false,
+      isadmin: isadmin || false,
     });
 
-    // Generar token JWT
-    const token = jwt.sign(
-      { id: user.id, username: user.username, isadmin: user.isadmin },
-      process.env.JWT_SECRET,
-      { expiresIn: "24h" }
-    );
-
     res.status(201).json({
-      message: "Usuario registrado exitosamente",
-      token,
+      message: "Usuario creado exitosamente",
       user: {
         id: user.id,
         username: user.username,
@@ -46,7 +85,7 @@ export const register = async (req, res) => {
     });
   } catch (error) {
     console.error("Error en el registro:", error);
-    res.status(500).json({ error: "Error al registrar el usuario" });
+    res.status(500).json({ error: "Error al crear el usuario" });
   }
 };
 
@@ -97,6 +136,13 @@ export const logout = (req, res) => {
 // **Modificar usuario (solo admins)**
 export const updateUser = async (req, res) => {
   try {
+    // Verificar si el usuario que hace la petición es admin
+    if (!req.user.isadmin) {
+      return res
+        .status(403)
+        .json({ error: "Solo los administradores pueden modificar usuarios" });
+    }
+
     const { id } = req.params; // ID del usuario a modificar
     const { username, department_id, isadmin } = req.body;
 

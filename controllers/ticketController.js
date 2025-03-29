@@ -23,7 +23,7 @@ export const createTicket = async (req, res) => {
         category,
         priority,
         status: 1,
-        requester: userId,
+        user_id: userId,
       },
       { transaction: t }
     );
@@ -70,7 +70,7 @@ export const getTickets = async (req, res) => {
               attributes: ["id", "username", "department_id", "isadmin"],
             },
           ],
-          order: [["comment_date", "ASC"]],
+          order: [["comment_date", "DESC"]],
         },
       ],
       order: [["createdAt", "DESC"]],
@@ -106,7 +106,7 @@ export const getTicketById = async (req, res) => {
               attributes: ["id", "username", "department_id", "isadmin"],
             },
           ],
-          order: [["comment_date", "ASC"]],
+          order: [["comment_date", "DESC"]],
         },
       ],
     });
@@ -170,8 +170,14 @@ export const updateTicket = async (req, res) => {
         {
           model: Comment,
           as: "comments",
-          include: [{ model: User, as: "author" }],
-          order: [["comment_date", "ASC"]],
+          include: [
+            {
+              model: User,
+              as: "author",
+              attributes: ["id", "username", "department_id", "isadmin"],
+            },
+          ],
+          order: [["comment_date", "DESC"]],
         },
       ],
     });
@@ -200,36 +206,21 @@ export const deleteTicket = async (req, res) => {
 
 export const getPriorities = async (req, res) => {
   try {
-    // CORRECTO: Llama a findAll sin argumentos para obtener todos
     const priorities = await Priority.findAll();
-
-    // CORRECTO: Verifica si el array está vacío
-    if (!priorities || priorities.length === 0) {
-      // Puedes devolver 200 con array vacío o 404, depende de tu preferencia
-      return res.status(404).json({ error: "No se encontraron prioridades" });
-      // return res.status(200).json([]); // Devolver array vacío es común
-    }
-
-    res.status(200).json(priorities);
+    res.json(priorities);
   } catch (error) {
     console.error("Error al obtener prioridades:", error);
-    res.status(500).json({ error: "Error interno al obtener prioridades" });
+    res.status(500).json({ error: "Error al obtener las prioridades" });
   }
 };
 
 export const getCategories = async (req, res) => {
   try {
     const categories = await Category.findAll();
-
-    if (!categories || categories.length === 0) {
-      return res.status(404).json({ error: "No se encontraron categorías" });
-      //return res.status(200).json([]);
-    }
-
-    res.status(200).json(categories);
+    res.json(categories);
   } catch (error) {
-    console.error("Error al obtener las categorías:", error);
-    res.status(500).json({ error: "Error interno al obtener las categorías" });
+    console.error("Error al obtener categorías:", error);
+    res.status(500).json({ error: "Error al obtener las categorías" });
   }
 };
 
@@ -255,7 +246,13 @@ export const addComment = async (req, res) => {
     await t.commit();
 
     const commentWithAuthor = await Comment.findByPk(newComment.id, {
-      include: [{ model: User, as: "author" }],
+      include: [
+        {
+          model: User,
+          as: "author",
+          attributes: ["id", "username", "department_id", "isadmin"],
+        },
+      ],
     });
 
     res.status(201).json(commentWithAuthor);
