@@ -45,6 +45,37 @@ export const createFirstAdmin = async (req, res) => {
   }
 };
 
+// **Obtener todos los usuarios (solo admins)**
+export const fetchAllUsers = async (req, res) => {
+  try {
+    // Verificar si el usuario que hace la petición es admin
+    if (!req.user.isadmin) {
+      return res
+        .status(403)
+        .json({
+          error: "Solo los administradores pueden ver todos los usuarios",
+        });
+    }
+
+    // Obtener todos los usuarios con sus departamentos
+    const users = await User.findAll({
+      include: [
+        {
+          model: Department,
+          as: "department",
+          attributes: ["id", "name"],
+        },
+      ],
+      attributes: { exclude: ["password"] },
+    });
+
+    res.json(users);
+  } catch (error) {
+    console.error("Error al obtener usuarios:", error);
+    res.status(500).json({ error: "Error al obtener los usuarios" });
+  }
+};
+
 // **Registro de usuario (solo admins)**
 export const register = async (req, res) => {
   try {
@@ -106,11 +137,10 @@ export const login = async (req, res) => {
       return res.status(401).json({ error: "Credenciales inválidas" });
     }
 
-    // Generar token JWT
+    // Generar token JWT sin expiración
     const token = jwt.sign(
       { id: user.id, username: user.username, isadmin: user.isadmin },
-      process.env.JWT_SECRET,
-      { expiresIn: "24h" }
+      process.env.JWT_SECRET
     );
 
     res.json({
