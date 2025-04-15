@@ -50,11 +50,9 @@ export const fetchAllUsers = async (req, res) => {
   try {
     // Verificar si el usuario que hace la petición es admin
     if (!req.user.isadmin) {
-      return res
-        .status(403)
-        .json({
-          error: "Solo los administradores pueden ver todos los usuarios",
-        });
+      return res.status(403).json({
+        error: "Solo los administradores pueden ver todos los usuarios",
+      });
     }
 
     // Obtener todos los usuarios con sus departamentos
@@ -228,5 +226,32 @@ export const getMe = async (req, res) => {
   } catch (error) {
     console.error("Error al obtener información del usuario:", error);
     res.status(500).json({ error: "Error al obtener información del usuario" });
+  }
+};
+
+export const deleteUser = async (req, res) => {
+  try {
+    // Verificar si el usuario que hace la petición es admin
+    if (!req.user.isadmin) {
+      return res
+        .status(403)
+        .json({ error: "Solo los administradores pueden eliminar usuarios" });
+    }
+
+    const { id } = req.params; // ID del usuario a eliminar
+
+    // Verificar si el usuario existe
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+
+    // Eliminar el usuario
+    await user.destroy();
+
+    res.json({ message: "Usuario eliminado exitosamente" });
+  } catch (error) {
+    console.error("Error al eliminar usuario:", error);
+    res.status(500).json({ error: "Error al eliminar el usuario" });
   }
 };

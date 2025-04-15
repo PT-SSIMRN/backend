@@ -8,6 +8,7 @@ import {
   getMe,
   createFirstAdmin,
   fetchAllUsers,
+  deleteUser,
 } from "../controllers/userController.js";
 import authenticateUser from "../middleware/authMiddleware.js";
 
@@ -24,5 +25,6 @@ router.get("/departments", authenticateUser, getDepartments);
 router.post("/register", authenticateUser, register);
 router.put("/:id", authenticateUser, updateUser);
 router.get("/all", authenticateUser, fetchAllUsers);
+router.delete("/:id", authenticateUser, deleteUser);
 
 export default router;
