@@ -17,8 +17,17 @@ import ChangeHistory from "./ChangeHistory.js";
 User.belongsTo(Department, { foreignKey: "department_id", as: "department" });
 Department.hasMany(User, { foreignKey: "department_id", as: "users" });
 
-Ticket.belongsTo(User, { foreignKey: "user_id", as: "requester" }); // Alias más descriptivo
-User.hasMany(Ticket, { foreignKey: "user_id", as: "createdTickets" });
+Ticket.belongsTo(User, {
+  foreignKey: "user_id",
+  as: "requester",
+  onDelete: "SET NULL", // Esto permite mantener los tickets cuando se elimina el usuario
+});
+
+User.hasMany(Ticket, {
+  foreignKey: "user_id",
+  as: "createdTickets",
+  onDelete: "SET NULL", // Coherente con la relación belongsTo
+});
 
 Ticket.belongsTo(Category, { foreignKey: "category", as: "categoryInfo" });
 Category.hasMany(Ticket, { foreignKey: "category", as: "tickets" });

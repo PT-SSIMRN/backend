@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { User } from "../models/index.js";
+import { User, Ticket } from "../models/index.js";
 import Department from "../models/Department.js";
 
 const SECRET_KEY = process.env.JWT_SECRET || "claveSecreta123";
@@ -229,29 +229,25 @@ export const getMe = async (req, res) => {
   }
 };
 
-export const deleteUser = async (req, res) => {
+export // En tu controlador de usuarios
+const deleteUser = async (req, res) => {
   try {
-    // Verificar si el usuario que hace la petición es admin
-    if (!req.user.isadmin) {
-      return res
-        .status(403)
-        .json({ error: "Solo los administradores pueden eliminar usuarios" });
-    }
+    const { id } = req.params;
 
-    const { id } = req.params; // ID del usuario a eliminar
+    // 1. Actualizar los tickets del usuario para desvincularlos
+    await Ticket.update({ user_id: null }, { where: { user_id: id } });
 
-    // Verificar si el usuario existe
-    const user = await User.findByPk(id);
-    if (!user) {
-      return res.status(404).json({ error: "Usuario no encontrado" });
-    }
+    // 2. Eliminar el usuario
+    await User.destroy({
+      where: { id },
+    });
 
-    // Eliminar el usuario
-    await user.destroy();
-
-    res.json({ message: "Usuario eliminado exitosamente" });
+    res.json({ message: "Usuario eliminado correctamente" });
   } catch (error) {
     console.error("Error al eliminar usuario:", error);
-    res.status(500).json({ error: "Error al eliminar el usuario" });
+    res.status(500).json({
+      error: "Error al eliminar usuario",
+      details: error.message,
+    });
   }
 };

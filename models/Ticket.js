@@ -10,7 +10,7 @@ const Ticket = sequelize.define(
       autoIncrement: true,
     },
     message: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT, // Cambiado de STRING a TEXT para mensajes largos
       allowNull: false,
     },
     status: {
@@ -20,7 +20,7 @@ const Ticket = sequelize.define(
     },
     user_id: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true, // Cambiado a true para permitir usuarios eliminados
     },
     category: {
       type: DataTypes.INTEGER,
@@ -34,6 +34,7 @@ const Ticket = sequelize.define(
   {
     tableName: "tickets",
     timestamps: true,
+    paranoid: false, // Desactiva soft delete explícitamente
   }
 );
 
