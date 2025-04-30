@@ -213,6 +213,99 @@ export const getDepartments = async (req, res) => {
   }
 };
 
+// **Editar un departamento (solo admins)**
+export const updateDepartment = async (req, res) => {
+  try {
+    if (!req.user.isadmin) {
+      return res.status(403).json({ error: "Acceso denegado" });
+    }
+
+    const { id } = req.params;
+    const { name } = req.body;
+
+    const department = await Department.findByPk(id);
+    if (!department) {
+      return res.status(404).json({ error: "Departamento no encontrado" });
+    }
+
+    await department.update({ name });
+
+    res.json({
+      message: "Departamento actualizado exitosamente",
+      department,
+    });
+  } catch (error) {
+    console.error("Error al actualizar departamento:", error);
+    res.status(500).json({ error: "Error al actualizar el departamento" });
+  }
+};
+
+// **Eliminar un departamento (solo admins)**
+export const deleteDepartment = async (req, res) => {
+  try {
+    if (!req.user.isadmin) {
+      return res.status(403).json({ error: "Acceso denegado" });
+    }
+
+    const { id } = req.params;
+
+    const department = await Department.findByPk(id);
+    if (!department) {
+      return res.status(404).json({ error: "Departamento no encontrado" });
+    }
+
+    // Verificar si hay usuarios asociados antes de eliminar
+    const usersWithDepartment = await User.findOne({
+      where: { department_id: id },
+    });
+    if (usersWithDepartment) {
+      return res.status(400).json({
+        error: "No se puede eliminar un departamento con usuarios asociados",
+      });
+    }
+
+    await department.destroy();
+
+    res.json({ message: "Departamento eliminado correctamente" });
+  } catch (error) {
+    console.error("Error al eliminar departamento:", error);
+    res.status(500).json({ error: "Error al eliminar el departamento" });
+  }
+};
+
+// **Crear un nuevo departamento (solo admins)**
+export const createDepartment = async (req, res) => {
+  try {
+    if (!req.user.isadmin) {
+      return res.status(403).json({ error: "Acceso denegado" });
+    }
+
+    const { name } = req.body;
+
+    if (!name) {
+      return res
+        .status(400)
+        .json({ error: "El nombre del departamento es obligatorio" });
+    }
+
+    // Verificar si ya existe un departamento con ese nombre
+    const existing = await Department.findOne({ where: { name } });
+    if (existing) {
+      return res.status(400).json({ error: "El departamento ya existe" });
+    }
+
+    const department = await Department.create({ name });
+
+    res.status(201).json({
+      message: "Departamento creado exitosamente",
+      department,
+    });
+  } catch (error) {
+    console.error("Error al crear departamento:", error);
+    res.status(500).json({ error: "Error al crear el departamento" });
+  }
+};
+
 // **Obtener información del usuario actual**
 export const getMe = async (req, res) => {
   try {

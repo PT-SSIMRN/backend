@@ -9,6 +9,9 @@ import {
   createFirstAdmin,
   fetchAllUsers,
   deleteUser,
+  updateDepartment,
+  deleteDepartment,
+  createDepartment,
 } from "../controllers/userController.js";
 import authenticateUser from "../middleware/authMiddleware.js";
 
@@ -26,5 +29,8 @@ router.post("/register", authenticateUser, register);
 router.put("/:id", authenticateUser, updateUser);
 router.get("/all", authenticateUser, fetchAllUsers);
 router.delete("/:id", authenticateUser, deleteUser);
+router.put("/departments/:id", authenticateUser, updateDepartment);
+router.delete("/departments/:id", authenticateUser, deleteDepartment);
+router.post("/departments", authenticateUser, createDepartment);
 
 export default router;

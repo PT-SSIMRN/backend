@@ -10,6 +10,12 @@ import {
   getCategories, // Añade la importación
   addComment,
   getStatus,
+  createPriority,
+  updatePriority,
+  deletePriority,
+  createCategory,
+  updateCategory,
+  deleteCategory,
 } from "../controllers/ticketController.js";
 import authenticateUser from "../middleware/authMiddleware.js";
 
@@ -43,5 +49,15 @@ router.delete("/:id", authenticateUser, deleteTicket);
 
 // Ruta para agregar un comentario a un ticket (protegida)
 router.post("/:id/comments", authenticateUser, addComment);
+
+// CRUD Priorities (protegidas, requieren admin idealmente)
+router.post("/priorities", authenticateUser, createPriority);
+router.put("/priorities/:id", authenticateUser, updatePriority);
+router.delete("/priorities/:id", authenticateUser, deletePriority);
+
+// CRUD Categories (protegidas, requieren admin idealmente)
+router.post("/categories", authenticateUser, createCategory);
+router.put("/categories/:id", authenticateUser, updateCategory);
+router.delete("/categories/:id", authenticateUser, deleteCategory);
 
 export default router;

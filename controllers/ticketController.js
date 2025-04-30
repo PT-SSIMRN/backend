@@ -214,6 +214,54 @@ export const getPriorities = async (req, res) => {
   }
 };
 
+// Crear una nueva prioridad
+export const createPriority = async (req, res) => {
+  try {
+    const { name } = req.body;
+    const newPriority = await Priority.create({ name });
+    res.status(201).json(newPriority);
+  } catch (error) {
+    console.error("Error al crear prioridad:", error);
+    res.status(500).json({ error: "Error al crear la prioridad" });
+  }
+};
+
+// Actualizar una prioridad existente
+export const updatePriority = async (req, res) => {
+  try {
+    const { name } = req.body;
+    const { id } = req.params;
+
+    const priority = await Priority.findByPk(id);
+    if (!priority)
+      return res.status(404).json({ error: "Prioridad no encontrada" });
+
+    priority.name = name || priority.name;
+    await priority.save();
+
+    res.json(priority);
+  } catch (error) {
+    console.error("Error al actualizar prioridad:", error);
+    res.status(500).json({ error: "Error al actualizar la prioridad" });
+  }
+};
+
+// Eliminar una prioridad
+export const deletePriority = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const priority = await Priority.findByPk(id);
+    if (!priority)
+      return res.status(404).json({ error: "Prioridad no encontrada" });
+
+    await priority.destroy();
+    res.json({ message: "Prioridad eliminada correctamente" });
+  } catch (error) {
+    console.error("Error al eliminar prioridad:", error);
+    res.status(500).json({ error: "Error al eliminar la prioridad" });
+  }
+};
+
 export const getCategories = async (req, res) => {
   try {
     const categories = await Category.findAll();
@@ -221,6 +269,54 @@ export const getCategories = async (req, res) => {
   } catch (error) {
     console.error("Error al obtener categorías:", error);
     res.status(500).json({ error: "Error al obtener las categorías" });
+  }
+};
+
+// Crear una nueva categoría
+export const createCategory = async (req, res) => {
+  try {
+    const { name } = req.body;
+    const newCategory = await Category.create({ name });
+    res.status(201).json(newCategory);
+  } catch (error) {
+    console.error("Error al crear categoría:", error);
+    res.status(500).json({ error: "Error al crear la categoría" });
+  }
+};
+
+// Actualizar una categoría existente
+export const updateCategory = async (req, res) => {
+  try {
+    const { name } = req.body;
+    const { id } = req.params;
+
+    const category = await Category.findByPk(id);
+    if (!category)
+      return res.status(404).json({ error: "Categoría no encontrada" });
+
+    category.name = name || category.name;
+    await category.save();
+
+    res.json(category);
+  } catch (error) {
+    console.error("Error al actualizar categoría:", error);
+    res.status(500).json({ error: "Error al actualizar la categoría" });
+  }
+};
+
+// Eliminar una categoría
+export const deleteCategory = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const category = await Category.findByPk(id);
+    if (!category)
+      return res.status(404).json({ error: "Categoría no encontrada" });
+
+    await category.destroy();
+    res.json({ message: "Categoría eliminada correctamente" });
+  } catch (error) {
+    console.error("Error al eliminar categoría:", error);
+    res.status(500).json({ error: "Error al eliminar la categoría" });
   }
 };
 
