@@ -164,29 +164,35 @@ export const logout = (req, res) => {
 // **Modificar usuario (solo admins)**
 export const updateUser = async (req, res) => {
   try {
-    // Verificar si el usuario que hace la petición es admin
     if (!req.user.isadmin) {
-      return res
-        .status(403)
-        .json({ error: "Solo los administradores pueden modificar usuarios" });
+      return res.status(403).json({
+        error: "Solo los administradores pueden modificar usuarios",
+      });
     }
 
-    const { id } = req.params; // ID del usuario a modificar
-    const { username, department_id, isadmin } = req.body;
+    const { id } = req.params;
+    const { username, department_id, isadmin, password } = req.body;
 
-    // Verificar si el usuario existe
     const user = await User.findByPk(id);
     if (!user) {
       return res.status(404).json({ error: "Usuario no encontrado" });
     }
 
-    // Actualizar el usuario
-    await user.update({
-      username,
-      department_id,
-      isadmin,
-    });
+    // Armar solo los campos que efectivamente vienen
+    const updates = {};
+    if (username !== undefined)    updates.username = username;
+    if (department_id !== undefined) updates.department_id = department_id;
+    if (isadmin !== undefined)     updates.isadmin = isadmin;
 
+    if (password) {
+      // Hash de la contraseña nueva
+      updates.password = await bcrypt.hash(password, 10);
+    }
+
+    // Aplico la actualización
+    await user.update(updates);
+
+    // Respuesta sin exponer la contraseña
     res.json({
       message: "Usuario actualizado exitosamente",
       user: {

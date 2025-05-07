@@ -16,6 +16,7 @@ import {
   createCategory,
   updateCategory,
   deleteCategory,
+  getMyTickets
 } from "../controllers/ticketController.js";
 import authenticateUser from "../middleware/authMiddleware.js";
 
@@ -37,6 +38,9 @@ router.post("/", authenticateUser, createTicket);
 
 // Ruta para obtener todos los tickets (protegida)
 router.get("/", authenticateUser, getTickets);
+
+// Ruta para obtener tickets por usuario
+router.get("/mine", authenticateUser, getMyTickets);
 
 // Ruta para obtener un ticket por ID (protegida)
 router.get("/:id", authenticateUser, getTicketById); // Ahora se evaluará después de /priorities y /categories

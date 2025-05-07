@@ -368,3 +368,39 @@ export const getStatus = async (req, res) => {
     res.status(500).json({ error: "Error al obtener los estados" });
   }
 };
+
+export const getMyTickets = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const tickets = await Ticket.findAll({
+      where: { user_id: userId },
+      include: [
+        {
+          model: User,
+          as: "requester",
+          attributes: ["id", "username", "department_id", "isadmin"],
+        },
+        { model: Status, as: "statusInfo" },
+        { model: Category, as: "categoryInfo" },
+        { model: Priority, as: "priorityInfo" },
+        {
+          model: Comment,
+          as: "comments",
+          include: [
+            {
+              model: User,
+              as: "author",
+              attributes: ["id", "username", "department_id", "isadmin"],
+            },
+          ],
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+
+    res.json(tickets);
+  } catch (error) {
+    console.error("Error al obtener mis tickets:", error);
+    res.status(500).json({ error: "Error al obtener mis tickets" });
+  }
+};
